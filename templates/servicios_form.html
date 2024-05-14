@@ -1,0 +1,262 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Servicios - Tech Solutions</title>
+    <link rel="stylesheet" href="{% static 'css/servicios_form.css' %}" />
+</head>
+
+<body>
+    <div class="header">
+        <a href="/home"><img src="{% static 'img/icono_ts.png' %}" alt="IconoTS" class="icon" /></a>
+        <h1>REGISTRO DE SERVICIOS</h1>
+        <a href="{% url 'logout' %}">
+            <img src="{% static 'img/logout_ts.png' %}" alt="LogoutTS" class="icon-right" />
+        </a>
+    </div>
+
+    <div class="welcome-container">
+        <p class="subtext">
+            Favor de completar todos los campos
+        </p>
+    </div>
+
+    <div class="formulario">
+        <div class="button-container">
+            <div class="cliente-no-registrado">
+                ¿Cliente no registrado?
+            </div>
+            <button id="registrarCliente">REGISTRAR CLIENTE</button>
+        </div>
+
+        <form id="miFormulario" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.num_telefono.label_tag }} {{ form.num_telefono }}
+            </div>
+            <div id="datosCliente" class="form-group hidden">
+                <label for="cliente">Cliente:</label>
+                <input type="text" id="cliente" name="cliente" readonly>
+            </div>
+            <div class="button-container">
+                <button id="buscarCliente" type="button">BUSCAR CLIENTE</button>
+            </div>
+
+            <div class="form-group">
+                {{ form.imei.label_tag }} {{ form.imei }}
+            </div>
+            <div class="form-group">
+                {{ form.marca.label_tag }} {{ form.marca }}
+            </div>
+            <div class="form-group">
+                {{ form.modelo.label_tag }} {{ form.modelo }}
+            </div>
+            <div class="form-group">
+                {{ form.clave_desbloqueo.label_tag }} {{ form.clave_desbloqueo }}
+            </div>
+            <div class="form-group">
+                {{ form.descripcion.label_tag }} {{ form.descripcion }}
+            </div>
+            <div class="form-group">
+                {{ form.cotizacion.label_tag }} {{ form.cotizacion }}
+            </div>
+            <div class="form-group">
+                {{ form.anticipo.label_tag }} {{ form.anticipo }}
+            </div>
+            <div class="button-container">
+                <button id="cancelarRegistro" type="button" class="cancelar">CANCELAR</button>
+                <button type="submit">REGISTRAR</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="advertenciaRegistroModal">
+        <div class="modal-content">
+            <div class="top-bar">
+                <span onclick="cerrarAdvertenciaRegistroModal()" class="close-button">&times;</span>
+            </div>
+            <img src="{% static 'img/advertencia_ts.png' %}" alt="AdvertenciaTS"
+                style="width: 60px; height: 60px; margin-bottom: 1px" />
+            <p id="advertenciaRegistroModalMessage" style="margin-bottom: 20px; font-size: 20px"></p>
+            <button onclick="cerrarAdvertenciaRegistroModal()"
+                style="margin-top: 10px; margin-right: 4%; margin-left: 4%">
+                CANCELAR
+            </button>
+            <button id="confirmarAdvertenciaRegistroModal" style="margin-top: 10px; margin-right: 4%; margin-left: 4%">
+                CONFIRMAR
+            </button>
+        </div>
+    </div>
+
+    <div class="modal" id="exitoRegistroModal">
+        <div class="modal-content">
+            <div class="top-bar">
+                <span onclick="cerrarExitoRegistroModal()" class="close-button">&times;</span>
+            </div>
+            <img src="{% static 'img/exito_ts.png' %}" alt="ExitoTS"
+                style="width: 60px; height: 60px; margin-bottom: 1px" />
+            <p id="exitoRegistroModalMessage" style="margin-bottom: 20px; font-size: 20px"></p>
+            <button id="exitoRegistroAceptado" style="margin-top: 10px">
+                ACEPTAR
+            </button>
+        </div>
+    </div>
+
+    <div class="modal" id="advertenciaCancelarRegistroModal">
+        <div class="modal-content">
+            <div class="top-bar">
+                <span onclick="cerrarAdvertenciaCancelarRegistroModal()" class="close-button">&times;</span>
+            </div>
+            <img src="{% static 'img/advertencia_ts.png' %}" alt="AdvertenciaTS"
+                style="width: 60px; height: 60px; margin-bottom: 1px" />
+            <p id="advertenciaCancelarRegistroModalMessage" style="margin-bottom: 20px; font-size: 20px"></p>
+            <button onclick="cerrarAdvertenciaCancelarRegistroModal()"
+                style="margin-top: 10px; margin-right: 4%; margin-left: 4%">
+                CANCELAR
+            </button>
+            <button id="advertenciaCancelarRegistroConfirmado"
+                style="margin-top: 10px; margin-right: 4%; margin-left: 4%">
+                CONFIRMAR
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document
+                .getElementById("miFormulario")
+                .addEventListener("submit", function (event) {
+                    event.preventDefault();
+
+                    mostrarModal(
+                        "<strong>Está a punto de registrar un servicio. ¿Desea continuar?</strong>",
+                        "advertenciaRegistroModal",
+                        "advertenciaRegistroModalMessage"
+                    );
+                });
+
+            var confirmarAdvertenciaRegistroModalButton =
+                document.getElementById(
+                    "confirmarAdvertenciaRegistroModal"
+                );
+            confirmarAdvertenciaRegistroModalButton.addEventListener(
+                "click",
+                function () {
+                    cerrarAdvertenciaRegistroModal();
+                    guardarRegistroServicio();
+                    mostrarModal(
+                        "<strong>Servicio registrado exitosamente.</strong>",
+                        "exitoRegistroModal",
+                        "exitoRegistroModalMessage"
+                    );
+                }
+            );
+
+            var exitoRegistroAceptadoButton = document.getElementById("exitoRegistroAceptado");
+            exitoRegistroAceptadoButton.addEventListener("click", function () {
+                var servicioId = document.getElementById('miFormulario').dataset.servicioId; // Asumiendo que guardas el ID aquí
+                window.location.href = "/servicios/consulta/" + servicioId;
+            });
+
+            var cancelarRegistroButton =
+                document.getElementById("cancelarRegistro");
+            cancelarRegistroButton.addEventListener("click", function () {
+                mostrarModal(
+                    "<strong>Está a punto de cancelar esta operación. ¿Desea continuar?</strong>",
+                    "advertenciaCancelarRegistroModal",
+                    "advertenciaCancelarRegistroModalMessage"
+                );
+            });
+
+            var advertenciaCancelarRegistroConfirmadoButton =
+                document.getElementById(
+                    "advertenciaCancelarRegistroConfirmado"
+                );
+            advertenciaCancelarRegistroConfirmadoButton.addEventListener(
+                "click",
+                function () {
+                    window.location.href = "/home";
+                }
+            );
+        });
+
+        var registrarClienteButton = document.getElementById(
+            "registrarCliente"
+        );
+        registrarClienteButton.addEventListener(
+            "click",
+            function () {
+                window.location.href = "/clientes/registro";
+            }
+        );
+
+        var buscarClienteButton = document.getElementById("buscarCliente");
+        buscarClienteButton.addEventListener("click", function () {
+            var numTelefono = document.getElementById("id_num_telefono").value;
+            buscarCliente(numTelefono);
+        });
+
+        function mostrarModal(mensaje, modalId, mensajeModalId) {
+            var modalMessage = document.getElementById(mensajeModalId);
+            modalMessage.innerHTML = mensaje;
+            document.getElementById(modalId).style.display = "flex";
+        }
+
+        function cerrarExitoRegistroModal() {
+            window.location.href = "/home";
+        }
+
+        function cerrarAdvertenciaRegistroModal() {
+            document.getElementById(
+                "advertenciaRegistroModal"
+            ).style.display = "none";
+        }
+
+        function cerrarAdvertenciaCancelarRegistroModal() {
+            document.getElementById(
+                "advertenciaCancelarRegistroModal"
+            ).style.display = "none";
+        }
+
+        function guardarRegistroServicio() {
+            var form = document.getElementById("miFormulario");
+            var formData = new FormData(form);
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "{% url 'servicios_registro' %}", true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    form.dataset.servicioId = response.servicioId; // Guarda el ID del servicio
+                }
+            };
+            xhr.send(formData);
+        }
+
+        function buscarCliente(numTelefono) {
+            fetch('/buscar_cliente/?num_telefono=' + numTelefono)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Cliente no encontrado');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById("cliente").value = data.cliente;
+                    document.getElementById("datosCliente").classList.remove("hidden");
+                })
+                .catch(error => {
+                    console.error('Error al buscar cliente:', error);
+                    document.getElementById("cliente").value = "NO ENCONTRADO";
+                    document.getElementById("datosCliente").classList.remove("hidden");
+                });
+        }
+    </script>
+</body>
+
+</html>
+

@@ -1,0 +1,209 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Servicios Modificar - Tech Solutions</title>
+    <link rel="stylesheet" href="{% static 'css/servicios_form.css' %}" />
+</head>
+
+<body>
+    <div class="header">
+        <a href="/home"><img src="{% static 'img/icono_ts.png' %}" alt="IconoTS" class="icon" /></a>
+        <h1>MODIFICAR SERVICIOS</h1>
+        <a href="{% url 'logout' %}">
+            <img src="{% static 'img/logout_ts.png' %}" alt="LogoutTS" class="icon-right" />
+        </a>
+    </div>
+
+    <div class="welcome-container">
+        <p class="subtext">
+            Favor de verificar todos los campos
+        </p>
+    </div>
+
+    <div class="formulario">
+        <form id="miFormulario" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="servicio_id" value="{{ servicio.id }}">
+            {{ form.as_p }}
+            {{ formset.management_form }}
+            {% for form in formset %}
+            <div class="inline-formset">
+                {{ form.as_p }}
+            </div>
+            {% endfor %}
+            
+            <div class="button-container">
+                <button id="cancelarRegistro" type="button" class="cancelar">CANCELAR</button>
+                <button type="submit">Guardar cambios</button>
+            </div>
+        </form>
+    
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="advertenciaRegistroModal">
+        <div class="modal-content">
+            <div class="top-bar">
+                <span onclick="cerrarAdvertenciaRegistroModal()" class="close-button">&times;</span>
+            </div>
+            <img src="{% static 'img/advertencia_ts.png' %}" alt="AdvertenciaTS"
+                style="width: 60px; height: 60px; margin-bottom: 1px" />
+            <p id="advertenciaRegistroModalMessage" style="margin-bottom: 20px; font-size: 20px"></p>
+            <button onclick="cerrarAdvertenciaRegistroModal()"
+                style="margin-top: 10px; margin-right: 4%; margin-left: 4%">
+                CANCELAR
+            </button>
+            <button id="confirmarAdvertenciaRegistroModal" style="margin-top: 10px; margin-right: 4%; margin-left: 4%">
+                CONFIRMAR
+            </button>
+        </div>
+    </div>
+
+    <div class="modal" id="exitoRegistroModal">
+        <div class="modal-content">
+            <div class="top-bar">
+                <span onclick="cerrarExitoRegistroModal()" class="close-button">&times;</span>
+            </div>
+            <img src="{% static 'img/exito_ts.png' %}" alt="ExitoTS"
+                style="width: 60px; height: 60px; margin-bottom: 1px" />
+            <p id="exitoRegistroModalMessage" style="margin-bottom: 20px; font-size: 20px"></p>
+            <button id="exitoRegistroAceptado" style="margin-top: 10px">
+                ACEPTAR
+            </button>
+        </div>
+    </div>
+
+    <div class="modal" id="advertenciaCancelarRegistroModal">
+        <div class="modal-content">
+            <div class="top-bar">
+                <span onclick="cerrarAdvertenciaCancelarRegistroModal()" class="close-button">&times;</span>
+            </div>
+            <img src="{% static 'img/advertencia_ts.png' %}" alt="AdvertenciaTS"
+                style="width: 60px; height: 60px; margin-bottom: 1px" />
+            <p id="advertenciaCancelarRegistroModalMessage" style="margin-bottom: 20px; font-size: 20px"></p>
+            <button onclick="cerrarAdvertenciaCancelarRegistroModal()"
+                style="margin-top: 10px; margin-right: 4%; margin-left: 4%">
+                CANCELAR
+            </button>
+            <button id="advertenciaCancelarRegistroConfirmado"
+                style="margin-top: 10px; margin-right: 4%; margin-left: 4%">
+                CONFIRMAR
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document
+                .getElementById("miFormulario")
+                .addEventListener("submit", function (event) {
+                    event.preventDefault();
+
+                    mostrarModal(
+                        "<strong>Está a punto de modificar un servicio. ¿Desea continuar?</strong>",
+                        "advertenciaRegistroModal",
+                        "advertenciaRegistroModalMessage"
+                    );
+                });
+
+            var confirmarAdvertenciaRegistroModalButton =
+                document.getElementById(
+                    "confirmarAdvertenciaRegistroModal"
+                );
+            confirmarAdvertenciaRegistroModalButton.addEventListener(
+                "click",
+                function () {
+                    cerrarAdvertenciaRegistroModal();
+                    guardarRegistroServicio();
+                    mostrarModal(
+                        "<strong>Servicio modificado exitosamente.</strong>",
+                        "exitoRegistroModal",
+                        "exitoRegistroModalMessage"
+                    );
+                }
+            );
+
+            var exitoRegistroAceptadoButton = document.getElementById("exitoRegistroAceptado");
+            exitoRegistroAceptadoButton.addEventListener("click", function () {
+                var servicioId = document.getElementById('miFormulario').dataset.servicioId; // Asumiendo que guardas el ID aquí
+                //var servicioId = document.getElementById('servicio_Id').value; 
+                window.location.href = "/servicios/gestion";
+            });
+
+            var cancelarRegistroButton =
+                document.getElementById("cancelarRegistro");
+            cancelarRegistroButton.addEventListener("click", function () {
+                mostrarModal(
+                    "<strong>Está a punto de cancelar esta operación. ¿Desea continuar?</strong>",
+                    "advertenciaCancelarRegistroModal",
+                    "advertenciaCancelarRegistroModalMessage"
+                );
+            });
+
+            var advertenciaCancelarRegistroConfirmadoButton =
+                document.getElementById(
+                    "advertenciaCancelarRegistroConfirmado"
+                );
+            advertenciaCancelarRegistroConfirmadoButton.addEventListener(
+                "click",
+                function () {
+                    window.location.href = "/servicios/gestion";
+                }
+            );
+        });
+
+       
+
+
+        function mostrarModal(mensaje, modalId, mensajeModalId) {
+            var modalMessage = document.getElementById(mensajeModalId);
+            modalMessage.innerHTML = mensaje;
+            document.getElementById(modalId).style.display = "flex";
+        }
+
+        function cerrarExitoRegistroModal() {
+            window.location.href = "/home";
+        }
+
+        function cerrarAdvertenciaRegistroModal() {
+            document.getElementById(
+                "advertenciaRegistroModal"
+            ).style.display = "none";
+        }
+
+        function cerrarAdvertenciaCancelarRegistroModal() {
+            document.getElementById(
+                "advertenciaCancelarRegistroModal"
+            ).style.display = "none";
+        }
+
+        function guardarRegistroServicio() {
+            var form = document.getElementById("miFormulario");
+            var formData = new FormData(form);
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", form.action, true);  // Usar form.action para capturar la URL actual del formulario
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.servicioId) {
+                        window.location.href = "/servicios/consulta/" + response.servicioId;  // Redirigir a la página de consulta
+                    } else {
+                        console.error('No se recibió el ID del servicio o hubo un error');
+                        // Manejar errores aquí, posiblemente mostrando un mensaje al usuario
+                    }
+                }
+            };
+            xhr.send(formData);
+        }
+
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,72 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - Tech Solutions</title>
+    <link rel="stylesheet" href="{% static 'css/clientes_form.css' %}">
+</head>
+<body>
+    <div class="header">
+        <a href="/home">
+            <img src="{% static 'img/icono_ts.png' %}" alt="Icono Tech Solutions" class="icon">
+        </a>
+        <h1>EDITAR PRODUCTO</h1>
+        <a href="{% url 'logout' %}">
+            <img src="{% static 'img/logout_ts.png' %}" alt="LogoutTS" class="icon-right" />
+        </a>
+    </div>
+
+    <div class="welcome-container">
+        <p class="subtext">
+            Favor de modificar los campos necesarios
+        </p>
+    </div>
+
+    <div class="formulario">
+        <!-- La acción del formulario debería ser la URL a la que se enviarán los datos del formulario para actualizar el producto -->
+        <form id="miFormulario" method="post" action="{% url 'inventario_editar' producto.id %}">
+            {% csrf_token %}
+            <!-- Aquí se renderizan los campos del formulario -->
+            <div class="form-group">
+                {{ form.nombre.label_tag }} {{ form.nombre }}
+            </div>
+            <div class="form-group">
+                {{ form.cantidad.label_tag }} {{ form.cantidad }}
+            </div>
+            <div class="form-group">
+                {{ form.costo.label_tag }} {{ form.costo }}
+            </div>
+            <div class="form-group">
+                {{ form.precio.label_tag }} {{ form.precio }}
+            </div>
+            <div class="button-container">
+                <!-- Botones para cancelar o enviar el formulario -->
+                <button type="button" onclick="cancelarEdicion()" class="cancelar">CANCELAR</button>
+                <button type="submit">ACTUALIZAR</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var form = document.getElementById("miFormulario");
+            form.addEventListener("submit", function (event) {
+                event.preventDefault(); // Evita que el formulario se envíe automáticamente
+                if (confirm("¿Está seguro que desea actualizar este producto?")) {
+                    form.submit(); // Envía el formulario manualmente si el usuario confirma
+                }
+            });
+        });
+
+        function cancelarEdicion() {
+            // Función que confirma si el usuario quiere cancelar la edición y perder los cambios
+            if (confirm("¿Está seguro que desea cancelar la edición? Se perderán todos los cambios.")) {
+                window.location.href = "/inventario"; // Redirige a la lista de productos
+            }
+        }
+    </script>
+</body>
+</html>

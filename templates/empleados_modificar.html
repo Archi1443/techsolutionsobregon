@@ -1,0 +1,57 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empleados - Tech Solutions</title>
+    <link rel="stylesheet" href="{% static 'css/clientes_form.css' %}">
+</head>
+<body>
+    <div class="header">
+        <a href="/home">
+            <img src="{% static 'img/icono_ts.png' %}" alt="Icono Tech Solutions" class="icon">
+        </a>
+        <h1>EDITAR EMPLEADO</h1>
+        <a href="{% url 'logout' %}">
+            <img src="{% static 'img/logout_ts.png' %}" alt="LogoutTS" class="icon-right" />
+        </a>
+    </div>
+
+    <div class="welcome-container">
+        <p class="subtext">
+            Favor de modificar los campos necesarios
+        </p>
+    </div>
+
+    <div class="formulario">
+        <form id="miFormulario" method="post" action="{% url 'empleados_modificar' empleado.id %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="button-container">
+                <button type="button" onclick="cancelarEdicion()" class="cancelar">CANCELAR</button>
+                <button type="submit">ACTUALIZAR</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var form = document.getElementById("miFormulario");
+            form.addEventListener("submit", function (event) {
+                event.preventDefault(); // Evita que el formulario se envíe automáticamente
+                if (confirm("¿Está seguro que desea actualizar este empleado?")) {
+                    form.submit(); // Envía el formulario manualmente si el usuario confirma
+                }
+            });
+        });
+
+        function cancelarEdicion() {
+            if (confirm("¿Está seguro que desea cancelar la edición? Se perderán todos los cambios.")) {
+                window.location.href = "/empleados/gestion";
+            }
+        }
+    </script>
+</body>
+</html>

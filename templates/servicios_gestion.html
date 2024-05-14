@@ -1,0 +1,263 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicios - Tech Solutions</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Calibri;
+            background-color: #f1f3f3;
+        }
+
+        .header {
+            background: linear-gradient(to right,
+                    #131c79,
+                    #1f2497,
+                    #2327a2,
+                    #292ab0,
+                    #3231c6);
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .icon,
+        .icon-right {
+            position: absolute;
+            top: 0;
+            width: 100px;
+            height: 100px;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .icon {
+            /* Icono izquierdo */
+            left: 0;
+        }
+
+        .icon-right {
+            /* Icono derecho */
+            right: 0;
+        }
+
+        /* Estilos para el botón Enviar */
+        .boton-buscar {
+            background: #343ba8;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Estilos CSS para la tabla */
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/home">
+            <img src="{% static 'img/icono_ts.png' %}" alt="IconoTS" class="icon" />
+        </a>
+        <h1>GESTIÓN DE SERVICIOS</h1>
+        <a href="{% url 'logout' %}">
+            <img src="{% static 'img/logout_ts.png' %}" alt="LogoutTS" class="icon-right" />
+        </a>
+    </div>
+
+    <label for="estadoBusqueda" class="label-busqueda">Estado del servicio:</label>
+    <select id="estadoBusqueda">
+        <option value="ingresado" selected="selected">Ingresado</option>
+        <option value="en_proceso">En Proceso</option>
+        <option value="finalizado">Finalizado</option>
+        <option value="entregado">Entregado</option>
+    </select>
+    <label for="busqueda" class="label-busqueda">Buscar por:</label>
+    <select id="tipoBusqueda">
+        <option value="num_telefono">Número de Teléfono</option>
+        <option value="imei">IMEI</option>
+    </select>
+    <input type="text" id="valorBusqueda" class="input-busqueda">
+    <button id="enviarBusqueda" class="boton-buscar">BUSCAR</button>
+    <br>
+    <br>
+    <button id="mostrarIngresados" class="boton-buscar">MOSTRAR INGRESADOS</button>
+    <button id="mostrarEnProceso" class="boton-buscar">MOSTRAR EN PROCESO</button>
+    <br>
+    <br>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>IMEI</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Estado</th>
+                <th>Descripción</th>
+                <th>Opciones</th>
+            </tr>
+        </thead>
+        <tbody id="tbodyServicios">
+            {% for servicio in servicios %}
+            <tr data-id="{{ servicio.id }}">
+                <td>{{ servicio.id }}</td>
+                <td>{{ servicio.cliente.nombre }} {{ servicio.cliente.apellidos }}</td>
+                <td>{{ servicio.celular.imei }}</td>
+                <td>{{ servicio.celular.marca }}</td>
+                <td>{{ servicio.celular.modelo }}</td>
+                <td>{{ servicio.estado }}</td>
+                <td>{{ servicio.descripcion }}</td>
+                <td class="icon-cell">
+                    <img src="{% static 'img/consulta_ts.png' %}" alt="Consulta" class="consulta-btn" />
+                    <img src="{% static 'img/editar_ts.png' %}" alt="Editar" class="edit-btn" />
+                    <img src="{% static 'img/borrar_ts.png' %}" alt="Borrar" class="delete-btn" />
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            function cargarServicios(tipoBusqueda) {
+                $.ajax({
+                    url: '/servicios/filtrar_servicios/',
+                    method: 'GET',
+                    data: { estadoBusqueda: tipoBusqueda },
+                    success: function (data) {
+                        $('#tbodyServicios').empty();
+                        data.forEach(function (servicio) {
+                            var html = '<tr data-id="' + servicio.id + '">' +
+                                '<td>' + servicio.id + '</td>' +
+                                '<td>' + servicio.cliente + '</td>' +
+                                '<td>' + servicio.imei + '</td>' +
+                                '<td>' + servicio.marca + '</td>' +
+                                '<td>' + servicio.modelo + '</td>' +
+                                '<td>' + servicio.estado + '</td>' +
+                                '<td>' + servicio.descripcion + '</td>' +
+                                '<td class="icon-cell">' +
+                                '<img src="{% static 'img/consulta_ts.png' %}" alt="Consulta" class="consulta-btn" /> ' +
+                                '<img src="{% static 'img/editar_ts.png' %}" alt="Editar" class="edit-btn" />' +
+                                '<img src="{% static 'img/borrar_ts.png' %}" alt="Borrar" class="delete-btn" />' +
+                                    '</td>' +
+                                '</tr>';
+                            $('#tbodyServicios').append(html);
+                        });
+                    }
+                });
+            }
+
+            cargarServicios('ingresado');
+
+            $('#mostrarIngresados').on('click', function () {
+                cargarServicios('ingresado');
+            });
+            $('#mostrarEnProceso').on('click', function () {
+                cargarServicios('en_proceso');
+            });
+
+            $('#enviarBusqueda').on('click', function () {
+                var tipoBusqueda = $('#tipoBusqueda').val();
+                var valorBusqueda = $('#valorBusqueda').val().trim();
+                var estadoBusqueda = $('#estadoBusqueda').val();
+
+                if (!valorBusqueda) {
+                    cargarServicios(estadoBusqueda);
+                } else {
+                    $.ajax({
+                        url: '/servicios/filtrar_servicios/',
+                        method: 'GET',
+                        data: {
+                            tipoBusqueda: tipoBusqueda,
+                            valorBusqueda: valorBusqueda,
+                            estadoBusqueda: estadoBusqueda
+                        },
+                        success: function (data) {
+                            $('#tbodyServicios').empty();
+                            data.forEach(function (servicio) {
+                                var html = '<tr data-id="' + servicio.id + '">' +
+                                    '<td>' + servicio.id + '</td>' +
+                                    '<td>' + servicio.cliente + '</td>' +
+                                    '<td>' + servicio.imei + '</td>' +
+                                    '<td>' + servicio.marca + '</td>' +
+                                    '<td>' + servicio.modelo + '</td>' +
+                                    '<td>' + servicio.estado + '</td>' +
+                                    '<td>' + servicio.descripcion + '</td>' +
+                                    '<td class="icon-cell">' +
+                                    '<img src="{% static 'img/consulta_ts.png' %}" alt="Consulta" class="consulta-btn" /> ' +
+                                    '<img src="{% static 'img/editar_ts.png' %}" alt="Editar" class="edit-btn" />' +
+                                    '<img src="{% static 'img/borrar_ts.png' %}" alt="Borrar" class="delete-btn" />' +
+                                        '</td>' +
+                                    '</tr>';
+                                $('#tbodyServicios').append(html);
+                            });
+                        }
+                    });
+                }
+            });
+
+            $(document).on('click', '.delete-btn', function () {
+                var serviceID = $(this).closest('tr').data('id');
+                if (confirm('¿Está seguro que desea borrar este servicio y todos los registros vinculados?')) {
+                    $.ajax({
+                        url: `/servicios/eliminar/${serviceID}/`,
+                        method: 'POST',
+                        beforeSend: function(xhr, settings) {
+                            xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
+                        },
+                        success: function() {
+                            alert('Servicio eliminado correctamente');
+                            location.reload();  // Recargar la página para reflejar los cambios
+                        },
+                        error: function() {
+                            alert('Error al eliminar el servicio');
+                        }
+                    });
+                }
+            });
+
+            $(document).on('click', '.edit-btn', function () {
+                var serviceID = $(this).closest('tr').data('id');
+                window.location.href = `/servicios/modificar/${serviceID}`;
+            });
+
+            $(document).on('click', '.consulta-btn', function () {
+                var serviceID = $(this).closest('tr').data('id');
+                window.location.href = `/servicios/consulta/${serviceID}`;
+            });
+        });
+    </script>
+</body>
+</html>

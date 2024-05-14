@@ -1,0 +1,243 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Clientes - Tech Solutions</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Calibri;
+            background-color: #f1f3f3;
+        }
+
+        .header {
+            background: linear-gradient(to right,
+                    #131c79,
+                    #1f2497,
+                    #2327a2,
+                    #292ab0,
+                    #3231c6);
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .icon {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100px;
+            height: 100px;
+            padding: 0px;
+            box-sizing: border-box;
+        }
+
+        
+        
+        .icon-right { /* Icono derecho */
+            right: 0;
+        }
+
+        .icon-cell {
+            text-align: center;
+            padding-right: 10px;
+        }
+        /* Estilos para la etiqueta del número de teléfono */
+        .label-telefono {
+            display: block;
+            margin: 20px 0 10px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        /* Estilos para el input */
+        .input-telefono {
+            width: 20%;
+            padding: 8px;
+            margin-bottom: 20px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            /* Asegura que padding y border están incluidos en el ancho total */
+        }
+
+        /* Estilos para el botón Enviar */
+        .boton-enviar {
+            padding: 10px 20px;
+            background-color: #2437e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .boton-enviar:hover {
+            background-color: #4cae4c;
+        }
+
+        /* Estilos CSS para la tabla */
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .editarCliente {
+            text-decoration: underline;
+            color: blue;
+            /* Puedes cambiar el color para que coincida con el esquema de tu sitio */
+            cursor: pointer;
+            /* Cambia el cursor para indicar que es clickeable */
+            display: block;
+            text-align: center;
+            /* Asegura que el texto esté centrado en el <th> */
+            padding: 10px;
+            /* Espaciado para hacer más fácil el clic */
+
+            background: none;
+            /* Elimina el fondo */
+            border: none;
+            /* Elimina los bordes */
+            padding: 5px;
+            /* Opcional: Ajusta el espaciado interno si es necesario */
+        }
+
+        /* Estilo para cambiar el color al pasar el mouse sobre el enlace, opcional */
+        .editar-enlace:hover {
+            color: darkblue;
+            /* Oscurece el color al pasar el mouse */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <a href="/home">
+            <img src="{{ icono_ts_path }}" alt="IconoTS" class="icon">
+        </a>
+        <h1>GESTIÓN DE CLIENTES</h1>
+        <a href="{% url 'logout' %}">
+            <img src="{% static 'img/logout_ts.png' %}" alt="LogoutTS" class="icon-right" />
+        </a>
+    </div>
+
+    <label for="searchType" class="label-busqueda">Buscar por:</label>
+    <select id="searchType" name="searchType" class="input-telefono">
+        <option value="id">ID</option>
+        <option value="nombre">Nombre</option>
+        <option value="telefono">Teléfono</option>
+    </select>
+
+    <label for="searchQuery" class="label-busqueda">Búsqueda:</label>
+    <input type="text" id="searchQuery" name="searchQuery" class="input-telefono">
+    <button id="enviarBusqueda" class="boton-enviar">Buscar</button>
+
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellidos</th>
+                <th>Número de Teléfono</th>
+                <th>Correo</th>
+                <th>Activo</th>
+                <th>Opciones</th>
+            </tr>
+        </thead>
+        <tbody id="tbodyClientes">
+            {% for cliente in clientes %}
+            <tr>
+                <td>{{ cliente.id }}</td>
+                <td>{{ cliente.nombre }}</td>
+                <td>{{ cliente.apellidos }}</td>
+                <td>{{ cliente.num_telefono }}</td>
+                <td>{{ cliente.correo }}</td>
+                <td>{{ cliente.activo|yesno:"Sí,No" }}</td>
+                <td>
+                <img src="{% static 'img/editar_ts.png' %}" alt="Editar" class="edit-btn" data-cliente-id="{{ cliente.id }}" style="cursor: pointer;">
+            </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7">No hay clientes registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+        
+    </table>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+$(document).ready(function () {
+    $('#enviarBusqueda').on('click', function () {
+        var searchType = $('#searchType').val();
+        var searchQuery = $('#searchQuery').val();
+        $.ajax({
+            url: '/clientes/filtrar_clientes/',
+            method: 'GET',
+            data: { type: searchType, query: searchQuery },
+            success: function (data) {
+                $('#tbodyClientes').empty();
+                data.forEach(function (cliente) {
+                    var html = `<tr>
+                        <td>${cliente.id}</td>
+                        <td>${cliente.nombre}</td>
+                        <td>${cliente.apellidos}</td>
+                        <td>${cliente.num_telefono}</td>
+                        <td>${cliente.correo}</td>
+                        <td>${cliente.activo ? 'Sí' : 'No'}</td>
+                        <td class="icon-cell">
+                            <img src="{% static 'img/editar_ts.png' %}" alt="Editar" class="edit-btn" data-cliente-id="${cliente.id}" style="cursor: pointer;">
+                            <img src="{% static 'img/borrar_ts.png' %}" alt="Borrar" class="delete-btn" data-cliente-id="${cliente.id}" style="cursor: pointer;">
+                        </td>
+                    </tr>`;
+                    $('#tbodyClientes').append(html);
+                });
+            }
+        });
+    });
+
+    // Evento clic para el icono de "Editar"
+    $(document).on('click', '.edit-btn', function () {
+        var clienteId = $(this).data('cliente-id');
+        console.log("Cliente ID:", clienteId); // Esto ayudará a verificar que el ID está siendo capturado correctamente
+        if (clienteId) {
+            window.location.href = `/clientes/gestion/modificar/${clienteId}/`;  // Asegúrate de que la URL termina con una barra '/'
+        } else {
+            console.error('No se encontró el ID del cliente.');
+        }
+    });
+});
+
+
+    </script>
+
+
+
+
+</body>
+
+</html>

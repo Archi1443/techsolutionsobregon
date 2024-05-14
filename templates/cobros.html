@@ -1,0 +1,279 @@
+{% load static %}
+{% load multiply %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Cobros - Tech Solutions</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Calibri;
+            background-color: #f1f3f3;
+        }
+        .header {
+            background: linear-gradient(to right, #131c79, #1f2497, #2327a2, #292ab0, #3231c6);
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .icon, .icon-right {
+            position: absolute;
+            top: 0;
+            width: 100px;
+            height: 100px;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .icon { left: 0; }
+        .icon-right { right: 0; }
+        .welcome-container {
+            padding: 10px;
+            margin-left: 15px;
+            text-align: center;
+        }
+        .welcome-text {
+            color: #000;
+            font-size: 36px;
+            font-weight: bold;
+        }
+        .subtext {
+            color: #000;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .button {
+            width: 200px;
+            height: 200px;
+            border-radius: 20px;
+            background-color: #cfdef1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #000;
+            text-decoration: none;
+            font-weight: bold;
+            position: relative;
+        }
+        .button img {
+            width: 100%;
+            height: auto;
+        }
+        .button-icon {
+            width: 100px;
+            height: 100px;
+        }
+        .button-text {
+            position: absolute;
+            bottom: 10px;
+            color: #000;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 300px;
+            height: 40px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            outline: none;
+        }
+        button[type="submit"] {
+            width: 150px;
+            height: 40px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            outline: none;
+        }
+        .servicio {
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 20px;
+        }
+        .servicio p {
+            margin: 5px 0;
+        }
+        #coincidencias {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        #coincidencias li {
+            padding: 8px;
+            margin-bottom: 5px;
+            background-color: #f2f2f2;
+            cursor: pointer;
+        }
+        #coincidencias li:hover {
+            background-color: #ddd;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background-color: white;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/home">
+            <img src="{% static 'img/icono_ts.png' %}" alt="IconoTS" class="icon" />
+        </a>
+        <h1>COBROS</h1>
+        <a href="{% url 'logout' %}">
+            <img src="{% static 'img/logout_ts.png' %}" alt="LogoutTS" class="icon-right" />
+        </a>
+    </div>
+
+    <!-- Formulario de Búsqueda de Servicios -->
+    <form method="GET" action="">
+        <input type="text" name="servicio_id" placeholder="Ingrese ID del servicio">
+        <button type="submit">Buscar Servicio</button>
+    </form>
+
+    <!-- Resultados del Servicio -->
+    {% if servicio %}
+    <div class="servicio">
+        <h2>Detalle del Servicio</h2>
+        <p><strong>Fecha:</strong> {{ fecha_actual }}</p>
+        <p><strong>Nombre del Cliente:</strong> {{ servicio.cliente.nombre }}</p>
+        <p><strong>Número de Teléfono:</strong> {{ servicio.cliente.num_telefono }}</p>
+        <p><strong>Descripción del Equipo:</strong> {{ servicio.descripcion }}</p>
+        <p><strong>Cotización:</strong> ${{ servicio.cotizacion }}</p>
+        <p><strong>Anticipo:</strong> ${{ servicio.anticipo }}</p>
+        <p><strong>Saldo Pendiente:</strong> ${{ servicio.saldo_pendiente }}</p>
+    </div>
+    {% endif %}
+
+    <h2>Buscar Producto</h2>
+    <input type="text" id="busqueda" placeholder="Buscar producto por nombre">
+
+    <!-- Lista de coincidencias -->
+    <ul id="coincidencias"></ul>
+
+    <!-- Tabla de productos en el ticket -->
+    <h2>Productos en el Ticket</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Total</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="productos-en-ticket">
+            {% for pet in productos_en_ticket %}
+            <tr data-id="{{ pet.id }}">
+                <td>{{ pet.producto.nombre }}</td>
+                <td>{{ pet.producto.precio }}</td>
+                <td>{{ pet.cantidad }}</td>
+                <td>{{ pet.cantidad|multiply:pet.producto.precio }}</td>
+                <td>
+                    <button class="eliminar-producto" data-id="{{ pet.id }}">Eliminar</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        $(document).on('input', '#busqueda', function () {
+            var query = $(this).val();
+            $.ajax({
+                url: '{% url "buscar_producto" %}',
+                data: { 'query': query },
+                dataType: 'json',
+                success: function (data) {
+                    $('#coincidencias').html('');
+                    $.each(data.productos, function (i, producto) {
+                        $('#coincidencias').append('<li data-id="' + producto.id + '">' + producto.nombre + '</li>');
+                    });
+                }
+            });
+        });
+
+        $(document).on('click', '#coincidencias li', function () {
+            var productoId = $(this).data('id');
+            $.ajax({
+                url: '{% url "detalles_producto" %}',
+                data: { 'producto_id': productoId },
+                dataType: 'json',
+                success: function (data) {
+                    var html = '<tr data-id="' + productoId + '">' +
+                        '<td>' + data.nombre + '</td>' +
+                        '<td>' + data.precio + '</td>' +
+                        '<td>1</td>' +
+                        '<td>' + data.precio + '</td>' +
+                        '<td><button class="eliminar-producto" data-id="' + productoId + '">Eliminar</button></td>' +
+                        '</tr>';
+                    $('#productos-en-ticket').append(html);
+                    $.ajax({
+                        url: '{% url "cobros" %}',
+                        method: 'POST',
+                        data: {
+                            'action': 'add_product',
+                            'producto_id': productoId,
+                            'cantidad': 1,
+                            'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        },
+                        success: function (response) {
+                            console.log('Producto añadido al ticket');
+                        }
+                    });
+                }
+            });
+        });
+
+        $(document).on('click', '.eliminar-producto', function () {
+            var row = $(this).closest('tr');
+            var productoId = row.data('id');
+            $.ajax({
+                url: '{% url "cobros" %}',
+                method: 'POST',
+                data: {
+                    'action': 'delete_product',
+                    'pet_id': productoId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    row.remove();
+                    console.log('Producto eliminado del ticket');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
